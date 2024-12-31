@@ -39,6 +39,7 @@ export default class TouchTexture {
   }
 
   initTexture(onScreen: boolean) {
+    console.log("initTexture");
     // create a 2D canvas to store the informations of the cursor
     this.canvas = document.createElement("canvas");
     this.canvas.width = this.canvas.height = this.size;
@@ -143,7 +144,6 @@ export default class TouchTexture {
     }
     this.ctx?.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
     this.ctx?.fill();
-    // fill canvas
   }
 
   reset() {
