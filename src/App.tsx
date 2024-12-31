@@ -1,25 +1,18 @@
 import "./App.css";
 
 import { Canvas, ThreeElements, useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import * as THREE from "three";
 
-function Box(props: ThreeElements["mesh"]) {
-  const meshRef = useRef<THREE.Mesh>(null!);
-  const [hovered, setHover] = useState(false);
-  const [active, setActive] = useState(false);
-  useFrame((state, delta) => (meshRef.current.rotation.x += delta));
+function Plane(props: ThreeElements["mesh"]) {
+  const mesh = useRef<THREE.Mesh>(null!);
+
+  useFrame((state, delta) => {});
+
   return (
-    <mesh
-      {...props}
-      ref={meshRef}
-      scale={active ? 1.5 : 1}
-      onClick={(event) => setActive(!active)}
-      onPointerOver={(event) => setHover(true)}
-      onPointerOut={(event) => setHover(false)}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={hovered ? "hotpink" : "#2f74c0"} />
+    <mesh {...props} ref={mesh}>
+      <planeGeometry args={[4, 6]} />
+      <meshStandardMaterial color="#2f74c0" />
     </mesh>
   );
 }
@@ -36,15 +29,14 @@ function Scene() {
         intensity={Math.PI}
       />
       <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-      <Box position={[-1.2, 0, 0]} />
-      <Box position={[1.2, 0, 0]} />
+      <Plane />
     </Canvas>
   );
 }
 
 function App() {
   return (
-    <div className="bg-gray-900">
+    <div className="bg-red-50">
       <header className="App-header">
         <Scene />
       </header>
