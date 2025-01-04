@@ -6,8 +6,8 @@ import {
   ThreeEvent,
   useFrame,
 } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
 import * as THREE from "three";
+import { useMemo, useRef } from "react";
 import TouchTexture from "./components/TouchTexture";
 
 const WIDTH = 4;
@@ -17,13 +17,20 @@ function Plane(props: ThreeElements["mesh"]) {
   const mesh = useRef<THREE.Mesh>(null!);
   const touchTexture = useMemo(() => new TouchTexture(true, 128, 60, 0.2), []);
 
-  useFrame((state, delta) => {
+  const uniforms = useMemo(
+    () => ({
+      uTouch: { value: touchTexture.texture },
+    }),
+    []
+  );
+
+  useFrame(() => {
     if (!touchTexture) return;
+
     touchTexture.update();
   });
 
   const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
-    console.log(e);
     touchTexture.canDraw = true;
     const normalizedX = e.point.x / WIDTH + 0.5;
     const normalizedY = e.point.y / HEIGHT + 0.5;
@@ -33,7 +40,32 @@ function Plane(props: ThreeElements["mesh"]) {
   return (
     <mesh {...props} ref={mesh} onPointerMove={handlePointerMove}>
       <planeGeometry args={[WIDTH, HEIGHT]} />
-      <meshStandardMaterial color="#2f74c0" />
+      <shaderMaterial
+        uniforms={uniforms}
+        vertexShader={`
+          varying vec2 vUv;
+        
+
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `}
+        fragmentShader={`
+          varying vec2 vUv;
+          uniform sampler2D uTouch;
+
+          void main(){
+            vec4 touch = texture2D(uTouch, vUv);
+            vec3 primaryColor = vec3(.0, 0.0, 0.0);
+            vec3 secondaryColor = vec3(vUv, .0);
+
+  
+
+            gl_FragColor = vec4(mix(primaryColor, secondaryColor, touch.x), 1.0);
+          }
+        `}
+      />
     </mesh>
   );
 }
