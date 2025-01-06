@@ -7,59 +7,60 @@ interface Point {
   force: number;
 }
 
+interface TouchTextureOptions {
+  size: number;
+  maxAge: number;
+  radius: number;
+  debugCanvas?: boolean;
+}
+
 function outSine(n: number) {
   return Math.sin((n * Math.PI) / 2);
 }
 
 export default class TouchTexture {
+  options: TouchTextureOptions;
   canDraw: boolean;
-  size: number;
-  maxAge: number;
-  radius: number;
+
   trail: Point[];
-  canvas: HTMLCanvasElement | null;
   ctx: CanvasRenderingContext2D | null;
   texture: Texture | null;
   timeout: NodeJS.Timeout | null;
 
-  constructor(isOnScreen = false, size = 128, maxAge = 120, radius = 0.2) {
-    this.size = size;
-    this.maxAge = maxAge;
-    this.radius = radius;
+  constructor({ debugCanvas = false, size = 128, maxAge = 120, radius = 0.2 }) {
+    this.options = { size, maxAge, radius, debugCanvas };
     this.trail = [];
     this.canDraw = true;
 
     // Initialize properties with default values
-    this.canvas = null;
     this.ctx = null;
     this.texture = null;
     this.timeout = null;
 
-    this.initTexture(isOnScreen);
+    this.initCanvas();
   }
 
-  initTexture(onScreen: boolean) {
-    console.log("initTexture");
+  initCanvas() {
     // create a 2D canvas to store the informations of the cursor
-    this.canvas = document.createElement("canvas");
-    this.canvas.width = this.canvas.height = this.size;
-    this.ctx = this.canvas.getContext("2d");
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = this.options.size;
+    this.ctx = canvas.getContext("2d");
     // draw black background
     if (this.ctx) {
       this.ctx.fillStyle = "black";
-      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     // use the canvas as a texture
-    this.texture = new Texture(this.canvas);
+    this.texture = new Texture(canvas);
     this.texture.needsUpdate = true;
 
-    this.canvas.id = "touchTexture";
-    this.canvas.style.position = "fixed";
-    this.canvas.style.bottom = "0";
-    this.canvas.style.zIndex = "10000";
+    canvas.id = "touchTexture";
+    canvas.style.position = "fixed";
+    canvas.style.bottom = "0";
+    canvas.style.zIndex = "10000";
 
     // No need to add it to the body,
-    if (onScreen) document.body.appendChild(this.canvas);
+    if (this.options.debugCanvas) document.body.appendChild(canvas);
   }
 
   update() {
@@ -70,7 +71,7 @@ export default class TouchTexture {
     this.trail.forEach((point, i) => {
       point.age++;
       // remove old
-      if (point.age > this.maxAge) {
+      if (point.age > this.options.maxAge) {
         this.trail.splice(i, 1);
       }
     });
@@ -91,7 +92,7 @@ export default class TouchTexture {
     if (this.ctx) {
       this.ctx.fillStyle = "black";
     }
-    this.ctx?.fillRect(0, 0, this.canvas?.width || 0, this.canvas?.height || 0);
+    this.ctx?.fillRect(0, 0, this.options.size, this.options.size);
   }
 
   addTouch(point: { x: number; y: number }) {
@@ -110,22 +111,23 @@ export default class TouchTexture {
   drawTouch(point: Point) {
     // draw point based on size and age
     const pos = {
-      x: point.x * this.size,
-      y: (1 - point.y) * this.size,
+      x: point.x * this.options.size,
+      y: (1 - point.y) * this.options.size,
     };
 
     let intensity = 1;
-    if (point.age < this.maxAge * 0.3) {
-      intensity = outSine(point.age / (this.maxAge * 0.3));
+    if (point.age < this.options.maxAge * 0.3) {
+      intensity = outSine(point.age / (this.options.maxAge * 0.3));
     } else {
       intensity = outSine(
-        1 - (point.age - this.maxAge * 0.3) / (this.maxAge * 0.7)
+        1 -
+          (point.age - this.options.maxAge * 0.3) / (this.options.maxAge * 0.7)
       );
     }
 
     intensity *= point.force;
 
-    const radius = this.size * this.radius * intensity;
+    const radius = this.options.size * this.options.radius * intensity;
     const grd = this.ctx?.createRadialGradient(
       pos.x,
       pos.y,
