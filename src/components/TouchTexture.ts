@@ -96,8 +96,11 @@ export default class TouchTexture {
   }
 
   addTouch(point: { x: number; y: number }) {
+    console.log("addTouch", point);
     let force = 0;
     const last = this.trail[this.trail.length - 1];
+
+    // We calculate the force aka the distance between the new and old point to determine the size of the point
     if (last) {
       const dx = last.x - point.x;
       const dy = last.y - point.y;

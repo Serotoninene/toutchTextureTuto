@@ -44,7 +44,6 @@ function Plane(props: ThreeElements["mesh"]) {
   });
 
   const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
-    touchTexture.canDraw = true;
     const normalizedX = e.point.x / WIDTH + 0.5;
     const normalizedY = e.point.y / HEIGHT + 0.5;
     touchTexture.addTouch({ x: normalizedX, y: normalizedY });
